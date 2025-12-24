@@ -20,12 +20,14 @@ func (u *URL) String() string {
 
 // String reassamples the URL into a URL string.
 func Parse(rawURL string) (*URL, error) {
-	scheme, rest, ok := strings.Cut(rawURL, "://")
+	scheme, rest, ok := strings.Cut(rawURL, ":")
 	if !ok {
 		return nil, errors.New("missing schema")
 	}
-
-	host, path, _ := strings.Cut(rest, "/")
+	if !strings.HasPrefix(rest, "//") {
+		return &URL{Scheme: scheme}, nil
+	}
+	host, path, _ := strings.Cut(rest[2:], "/")
 
 	return &URL{
 		Scheme: scheme,
