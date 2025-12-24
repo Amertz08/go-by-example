@@ -13,12 +13,12 @@ type URL struct {
 	Path   string
 }
 
-// Parse parses a URL string into a URL structure.
+// String reassembles the URL into a URL string.
 func (u *URL) String() string {
 	return fmt.Sprintf("%s://%s/%s", u.Scheme, u.Host, u.Path)
 }
 
-// String reassamples the URL into a URL string.
+// Parse parses a URL string into a URL structure.
 func Parse(rawURL string) (*URL, error) {
 	scheme, rest, ok := strings.Cut(rawURL, ":")
 	if !ok {
