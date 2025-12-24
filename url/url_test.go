@@ -41,7 +41,7 @@ func TestURLString(t *testing.T) {
 		want string
 	}{
 		{
-			name: "valid case",
+			name: "valid_case",
 			uri: &URL{
 				Scheme: "https",
 				Host:   "github.com",
@@ -52,7 +52,9 @@ func TestURLString(t *testing.T) {
 		{
 			name: "nil",
 			uri:  nil,
-			want: ""},
+			want: "",
+		},
+		{name: "empty", uri: new(URL), want: ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
