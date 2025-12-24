@@ -1,6 +1,10 @@
 package url
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"strings"
+)
 
 // A URL represents a parse URL
 type URL struct {
@@ -15,11 +19,17 @@ func (u *URL) String() string {
 }
 
 // String reassamples the URL into a URL string.
-func Parse(uri string) (*URL, error) {
+func Parse(rawURL string) (*URL, error) {
+	scheme, rest, ok := strings.Cut(rawURL, "://")
+	if !ok {
+		return nil, errors.New("missing schema")
+	}
+
+	host, path, _ := strings.Cut(rest, "/")
 
 	return &URL{
-		Scheme: "https",
-		Host:   "github.com",
-		Path:   "inancgumus",
+		Scheme: scheme,
+		Host:   host,
+		Path:   path,
 	}, nil
 }
