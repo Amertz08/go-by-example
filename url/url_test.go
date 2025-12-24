@@ -62,6 +62,16 @@ func TestURLString(t *testing.T) {
 			uri:  &URL{Scheme: "data"},
 			want: "data:",
 		},
+		{
+			name: "no_host",
+			uri:  &URL{Scheme: "https", Host: "", Path: "inancgumus"},
+			want: "https:///inancgumus",
+		},
+		{
+			name: "no_path",
+			uri:  &URL{Scheme: "https", Host: "github.com", Path: ""},
+			want: "https://github.com",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
