@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"flag"
 	"strconv"
-	"strings"
 )
 
 type parseFunc func(string) error
@@ -31,26 +30,12 @@ type config struct {
 }
 
 func parseArgs(c *config, args []string) error {
-	// If we want to add more flags, we can add them here
-	// and handle how to parse them into Go types
-	flagSet := map[string]parseFunc{
-		"url": stringVar(&c.url),
-		"n":   intVar(&c.n),
-		"c":   intVar(&c.c),
-		"rps": intVar(&c.rps),
-	}
+	fs := flag.NewFlagSet("hit", flag.ContinueOnError)
 
-	for _, arg := range args {
-		name, val, _ := strings.Cut(arg, "=")
-		name = strings.TrimPrefix(name, "-")
+	fs.StringVar(&c.url, "url", "", "HTTP server `URL` (required)")
+	fs.IntVar(&c.n, "n", c.n, "Number of requests")
+	fs.IntVar(&c.c, "c", c.c, "Concurrency level")
+	fs.IntVar(&c.rps, "rps", c.rps, "Requests per second")
 
-		setVar, ok := flagSet[name]
-		if !ok {
-			return fmt.Errorf("flag provided but not defined: -%s", name)
-		}
-		if err := setVar(val); err != nil {
-			return fmt.Errorf("invalid value %q for flag -%s: %w", val, name, err)
-		}
-	}
-	return nil
+	return fs.Parse(args)
 }
