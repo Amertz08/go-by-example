@@ -68,6 +68,7 @@ func TestParseError(t *testing.T) {
 		uri  string
 	}{
 		{name: "without_scheme", uri: "github.com"},
+		{name: "empty_scheme", uri: "://github.com"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
