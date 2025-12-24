@@ -27,7 +27,11 @@ func (u *URL) String() string {
 
 	if sc := u.Scheme; sc != "" {
 		s.WriteString(sc)
-		s.WriteString("://")
+		if sc != "http" && sc != "https" {
+			s.WriteByte(':')
+		} else {
+			s.WriteString("://")
+		}
 	}
 	if h := u.Host; h != "" {
 		s.WriteString(h)

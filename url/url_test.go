@@ -57,6 +57,11 @@ func TestURLString(t *testing.T) {
 			want: "",
 		},
 		{name: "empty", uri: new(URL), want: ""},
+		{
+			name: "with_data_scheme",
+			uri:  &URL{Scheme: "data"},
+			want: "data:",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
