@@ -61,3 +61,20 @@ func TestParseSubtests(t *testing.T) {
 		})
 	}
 }
+
+func TestParseError(t *testing.T) {
+	tests := []struct {
+		name string
+		uri  string
+	}{
+		// TODO: tt cases
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := Parse(tt.uri)
+			if err == nil {
+				t.Errorf("Parse (%q) err=nil; wan an error", tt.uri)
+			}
+		})
+	}
+}
