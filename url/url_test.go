@@ -1,6 +1,8 @@
 package url
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -102,5 +104,20 @@ func BenchmarkURLString(b *testing.B) {
 	u := &URL{Scheme: "https", Host: "github.com", Path: "inancgumus"}
 	for b.Loop() {
 		_ = u.String()
+	}
+}
+
+func BenchmarkURLStringLong(b *testing.B) {
+	for _, n := range []int{10, 100, 1_000} {
+		u := &URL{
+			Scheme: strings.Repeat("x", n),
+			Host:   strings.Repeat("y", n),
+			Path:   strings.Repeat("z", n),
+		}
+		b.Run(fmt.Sprintf("%d", n), func(b *testing.B) {
+			for b.Loop() {
+				_ = u.String()
+			}
+		})
 	}
 }
