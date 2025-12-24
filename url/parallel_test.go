@@ -1,6 +1,7 @@
 package url
 
 import (
+	"sync"
 	"testing"
 	"time"
 )
@@ -20,15 +21,26 @@ func TestQuery(t *testing.T) {
 }
 
 var counter int
+var mu sync.Mutex
 
-func incr() { counter++ }
+func getCounter() int {
+	mu.Lock()
+	defer mu.Unlock()
+	return counter
+}
+
+func incr() {
+	mu.Lock()
+	defer mu.Unlock()
+	counter++
+}
 
 func TestIncr(t *testing.T) {
 	t.Parallel()
 	t.Run("once", func(t *testing.T) {
 		t.Parallel()
 		incr()
-		if counter != 1 {
+		if getCounter() != 1 {
 			t.Errorf("counter = %d; want 1", counter)
 		}
 	})
@@ -37,7 +49,7 @@ func TestIncr(t *testing.T) {
 		t.Parallel()
 		incr()
 		incr()
-		if counter != 3 {
+		if getCounter() != 3 {
 			t.Errorf("counter = %d; want 3", counter)
 		}
 	})
