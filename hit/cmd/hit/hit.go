@@ -28,7 +28,7 @@ type env struct {
 	stdout io.Writer
 	stderr io.Writer
 	args   []string
-	dryrun bool
+	dryRun bool
 }
 
 func run(e *env) error {
@@ -45,5 +45,16 @@ func run(e *env) error {
 		c.url,
 		c.c,
 	)
+	if e.dryRun {
+		return nil
+	}
+	if err := runHit(&c, e.stdout); err != nil {
+		fmt.Fprintf(e.stderr, "\nerror occurred: %v\n", err)
+		return err
+	}
+	return nil
+}
+
+func runHit(c *config, stdout io.Writer) error {
 	return nil
 }
