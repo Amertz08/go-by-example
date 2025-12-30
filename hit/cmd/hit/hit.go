@@ -17,7 +17,7 @@ func main() {
 	e := &env{
 		stdout: os.Stdout,
 		stderr: os.Stderr,
-		args:   os.Args[1:],
+		args:   os.Args,
 	}
 	if err := run(e); err != nil {
 		os.Exit(1)

@@ -25,7 +25,6 @@ func parseArgs(c *config, args []string, stderr io.Writer) error {
 		fs.PrintDefaults()
 	}
 
-	fs.StringVar(&c.url, "url", "", "HTTP server `URL` (required)")
 	fs.Var(asPositiveIntValue(&c.n), "n", "Number of requests")
 	fs.Var(asPositiveIntValue(&c.c), "c", "Concurrency level")
 	fs.Var(asPositiveIntValue(&c.rps), "rps", "Requests per second")
