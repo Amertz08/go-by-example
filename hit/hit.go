@@ -1,6 +1,7 @@
 package hit
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -16,4 +17,21 @@ func Send(_ *http.Client, _ *http.Request) Result {
 		Bytes:    10,
 		Duration: roundTripTime,
 	}
+}
+
+// SendN sends N requests using [Send].
+// It returns a single-use [Results] iterator that
+// pushes a [Result] for each [http.Request] sent.
+func SendN(n int, req *http.Request) (Results, error) {
+	if n <= 0 {
+		return nil, fmt.Errorf("n musts be positive: got %d", n)
+	}
+	return func(yield func(Result) bool) {
+		for range n {
+			result := Send(http.DefaultClient, req)
+			if !yield(result) {
+				return
+			}
+		}
+	}, nil
 }
