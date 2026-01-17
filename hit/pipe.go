@@ -1,6 +1,9 @@
 package hit
 
-import "net/http"
+import (
+	"net/http"
+	"time"
+)
 
 func produce(
 	n int,
@@ -15,6 +18,20 @@ func produce(
 		}
 	}()
 
+	return out
+}
+
+func throttle(in <-chan *http.Request, delay time.Duration) <-chan *http.Request {
+	out := make(chan *http.Request)
+
+	go func() {
+		defer close(out)
+		t := time.NewTicker(delay)
+		for r := range in {
+			<-t.C
+			out <- r
+		}
+	}()
 	return out
 }
 
