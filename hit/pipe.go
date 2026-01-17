@@ -37,6 +37,8 @@ func throttle(in <-chan *http.Request, delay time.Duration) <-chan *http.Request
 
 func runPipeline(n int, req *http.Request, opts Options) <-chan Result {
 	requests := produce(n, req)
-	_ = requests
+	if opts.RPS > 0 {
+		requests = throttle(requests, time.Second/time.Duration(opts.RPS))
+	}
 	return nil
 }
