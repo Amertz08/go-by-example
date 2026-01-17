@@ -3,7 +3,12 @@ package main
 import (
 	"fmt"
 	"io"
+	"math"
+	"net/http"
 	"os"
+	"time"
+
+	"github.com/Amertz08/go-by-example/hit"
 )
 
 const logo = `
@@ -56,5 +61,41 @@ func run(e *env) error {
 }
 
 func runHit(c *config, stdout io.Writer) error {
+	req, err := http.NewRequest(http.MethodGet, c.url, http.NoBody)
+
+	if err != nil {
+		return fmt.Errorf("creating a new request: %w", err)
+	}
+	results, err := hit.SendN(
+		c.n, req, hit.Options{Concurrency: c.c, RPS: c.rps},
+	)
+	if err != nil {
+		return fmt.Errorf("sending requests: %w", err)
+	}
+	sum := hit.Summarize(results)
+	printSummary(sum, stdout)
 	return nil
+}
+
+func printSummary(sum hit.Summary, stdout io.Writer) {
+	fmt.Fprintf(stdout, `
+Summary:
+	Success: 	%.0f%%
+	RPS: 		%.1f
+	Requests: 	%d
+	Errors: 	%d
+	Bytes: 		%d
+	Duration: 	%s
+	Fastest: 	%s
+	Slowest: 	%s
+`,
+		sum.Success,
+		math.Round(sum.RPS),
+		sum.Requests,
+		sum.Errors,
+		sum.Bytes,
+		sum.Duration.Round(time.Millisecond),
+		sum.Fastest.Round(time.Millisecond),
+		sum.Slowest.Round(time.Millisecond),
+	)
 }
