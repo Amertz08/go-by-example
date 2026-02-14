@@ -1,7 +1,6 @@
 package hit
 
 import (
-	"slices"
 	"testing"
 	"time"
 )
@@ -11,7 +10,7 @@ func TestSummarizeFastestResult(t *testing.T) {
 		{Duration: 2 * time.Second},
 		{Duration: 5 * time.Second},
 	}
-	sum := Summarize(Results(slices.Values(results)))
+	sum := Summarize(results)
 	if sum.Fastest != 2*time.Second {
 		t.Errorf("Fastest=%v; want 2s", sum.Fastest)
 	}
