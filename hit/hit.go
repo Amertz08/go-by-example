@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"math/rand/v2"
 	"net/http"
 	"time"
@@ -25,22 +27,25 @@ func RandomStatusCode() int {
 }
 
 // Send sends an HTTP request and returns a performance [Result]
-func Send(_ *http.Client, _ *http.Request) Result {
-	const roundTripTime = 100 * time.Millisecond
+func Send(client *http.Client, req *http.Request) Result {
+	started := time.Now()
+	var (
+		bytes int64
+		code  int
+	)
 
-	time.Sleep(roundTripTime)
-
-	statusCode := RandomStatusCode()
-
-	var err error
-	if statusCode != http.StatusOK {
-		err = errorMap[statusCode]
+	resp, err := client.Do(req)
+	if err == nil {
+		{
+			defer resp.Body.Close()
+			code = resp.StatusCode
+			bytes, err = io.Copy(ioutil.Discard, resp.Body)
+		}
 	}
-
 	return Result{
-		Status:   statusCode,
-		Bytes:    10,
-		Duration: roundTripTime,
+		Duration: time.Since(started),
+		Bytes:    bytes,
+		Status:   code,
 		Error:    err,
 	}
 }
