@@ -30,7 +30,7 @@ type Summary struct {
 }
 
 // Summarize returns a [Summary] of the [Results].
-func Summarize(results Results) Summary {
+func Summarize(results []Result) Summary {
 	var s Summary
 	if results == nil {
 		return s
@@ -39,7 +39,7 @@ func Summarize(results Results) Summary {
 	started := time.Now()
 	totalErrors := 0
 
-	for r := range results {
+	for _, r := range results {
 		s.Requests++
 		s.Bytes += r.Bytes
 

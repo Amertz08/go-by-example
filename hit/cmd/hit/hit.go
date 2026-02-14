@@ -72,7 +72,17 @@ func runHit(c *config, stdout io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("sending requests: %w", err)
 	}
-	sum := hit.Summarize(results)
+
+	count := 0
+	var r []hit.Result
+	for result := range results {
+		r = append(r, result)
+		count += 1
+		progressPct := int(float64(count) / float64(c.n) * 100)
+		fmt.Printf("\r%d%% [%d/%d] ", progressPct, count, c.n)
+		fmt.Fprintf(stdout, "%v\n", result)
+	}
+	sum := hit.Summarize(r)
 	printSummary(sum, stdout)
 	return nil
 }
