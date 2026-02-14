@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestDispatchErrorThreshold(t *testing.T) {
+func TestDispatchErrorThresholdEndsTest(t *testing.T) {
 	errThreshold := 1
 	inputChannel := produce(10, &http.Request{})
 	send := func(*http.Request) Result {
@@ -25,10 +25,16 @@ func TestDispatchErrorThreshold(t *testing.T) {
 	results := dispatch(inputChannel, 1, errThreshold, send)
 
 	errCount := 0
+	resultCount := 0
 	for result := range results {
+		resultCount++
 		if result.Error != nil {
 			errCount++
 		}
+	}
+
+	if resultCount == 10 {
+		t.Fatalf("expected at least 1 error, got none")
 	}
 
 	if errCount > errThreshold {
@@ -36,7 +42,7 @@ func TestDispatchErrorThreshold(t *testing.T) {
 	}
 }
 
-func TestDispatchErrorThreshold2(t *testing.T) {
+func TestDispatchErrorThresholdZeroUsesAllRequests(t *testing.T) {
 	errThreshold := 0
 	requestCount := 10
 	inputChannel := produce(requestCount, &http.Request{})
