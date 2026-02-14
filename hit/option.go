@@ -27,6 +27,10 @@ type Options struct {
 	// Send processes requests.
 	// Default Uses [Send].
 	Send SendFunc
+
+	// Client is the HTTP client to use.
+	// Default Uses [http.DefaultClient].
+	Client *http.Client
 }
 
 func Defaults() Options {
@@ -46,6 +50,9 @@ func withDefaults(o Options) Options {
 			Timeout:       30 * time.Second,
 		}
 		o.Send = func(r *http.Request) Result { return Send(client, r) }
+	}
+	if o.Client == nil {
+		o.Client = http.DefaultClient
 	}
 	return o
 }
