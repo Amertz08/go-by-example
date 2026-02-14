@@ -44,7 +44,7 @@ func run(e *env) error {
 	}
 	fmt.Fprintf(
 		e.stdout,
-		"%s\n\nSendidng %d requeests to %q (concurrency: %d)\n",
+		"%s\n\nSending %d requests to %q (concurrency: %d)\n",
 		logo,
 		c.n,
 		c.url,
