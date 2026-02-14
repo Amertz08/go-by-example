@@ -1,10 +1,27 @@
 package hit
 
 import (
+	"errors"
 	"fmt"
+	"math/rand/v2"
 	"net/http"
 	"time"
 )
+
+var commonStatusCodes = []int{
+	http.StatusOK,
+	http.StatusBadRequest,
+	http.StatusInternalServerError,
+}
+
+var errorMap = map[int]error{
+	http.StatusBadRequest:          errors.New("bad request"),
+	http.StatusInternalServerError: errors.New("internal server error"),
+}
+
+func RandomStatusCode() int {
+	return commonStatusCodes[rand.IntN(len(commonStatusCodes))]
+}
 
 // Send sends an HTTP request and returns a performance [Result]
 func Send(_ *http.Client, _ *http.Request) Result {
@@ -12,10 +29,18 @@ func Send(_ *http.Client, _ *http.Request) Result {
 
 	time.Sleep(roundTripTime)
 
+	statusCode := RandomStatusCode()
+
+	var err error
+	if statusCode != http.StatusOK {
+		err = errorMap[statusCode]
+	}
+
 	return Result{
-		Status:   http.StatusOK,
+		Status:   statusCode,
 		Bytes:    10,
 		Duration: roundTripTime,
+		Error:    err,
 	}
 }
 
