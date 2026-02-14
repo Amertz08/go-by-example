@@ -78,6 +78,14 @@ func runHit(c *config, stdout io.Writer) error {
 }
 
 func printSummary(sum hit.Summary, stdout io.Writer) {
+	errorCount := 0
+	if sum.Errors != nil {
+		for _, v := range sum.Errors {
+			errorCount += v
+		}
+	}
+	sum.Success = float64(sum.Requests-errorCount) / float64(sum.Requests) * 100
+
 	fmt.Fprintf(stdout, `
 Summary:
 	Success: 	%.0f%%
@@ -93,11 +101,18 @@ Summary:
 		sum.Success,
 		math.Round(sum.RPS),
 		sum.Requests,
-		sum.Errors,
+		errorCount,
 		sum.Bytes,
 		sum.Duration.Round(time.Millisecond),
 		(sum.Duration / time.Duration(sum.Requests)).Round(time.Millisecond),
 		sum.Fastest.Round(time.Millisecond),
 		sum.Slowest.Round(time.Millisecond),
 	)
+
+	if sum.Errors != nil {
+		fmt.Fprintf(stdout, "Errors:\n")
+		for k, v := range sum.Errors {
+			fmt.Fprintf(stdout, "\t%s: %d\n", k, v)
+		}
+	}
 }

@@ -20,7 +20,7 @@ type Results iter.Seq[Result]
 // Summary is the summary of [Result] values.
 type Summary struct {
 	Requests int
-	Errors   int
+	Errors   map[string]int
 	Bytes    int64
 	RPS      float64
 	Duration time.Duration
@@ -37,12 +37,18 @@ func Summarize(results Results) Summary {
 	}
 
 	started := time.Now()
+	totalErrors := 0
+
 	for r := range results {
 		s.Requests++
 		s.Bytes += r.Bytes
 
 		if r.Error != nil || r.Status != http.StatusOK {
-			s.Errors++
+			if s.Errors == nil {
+				s.Errors = make(map[string]int)
+			}
+			s.Errors[r.Error.Error()]++
+			totalErrors++
 		}
 		if s.Fastest == 0 {
 			s.Fastest = r.Duration
@@ -58,7 +64,7 @@ func Summarize(results Results) Summary {
 		}
 	}
 	if s.Requests > 0 {
-		s.Success = (float64(s.Requests-s.Errors) / float64(s.Requests)) * 100
+		s.Success = (float64(s.Requests-totalErrors) / float64(s.Requests)) * 100
 	}
 	s.Duration = time.Since(started)
 	s.RPS = float64(s.Requests) / s.Duration.Seconds()
