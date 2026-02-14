@@ -64,7 +64,9 @@ func run(e *env) error {
 }
 
 func runHit(c *config, stdout io.Writer) error {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	ctx, stop := signal.NotifyContext(ctx, os.Interrupt)
 	defer stop()
 
 	req, err := http.NewRequest(http.MethodGet, c.url, http.NoBody)
