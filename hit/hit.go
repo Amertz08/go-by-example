@@ -2,29 +2,12 @@ package hit
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand/v2"
 	"net/http"
 	"time"
 )
-
-var commonStatusCodes = []int{
-	http.StatusOK,
-	http.StatusBadRequest,
-	http.StatusInternalServerError,
-}
-
-var errorMap = map[int]error{
-	http.StatusBadRequest:          errors.New("bad request"),
-	http.StatusInternalServerError: errors.New("internal server error"),
-}
-
-func RandomStatusCode() int {
-	return commonStatusCodes[rand.IntN(len(commonStatusCodes))]
-}
 
 // Send sends an HTTP request and returns a performance [Result]
 func Send(client *http.Client, req *http.Request) Result {
