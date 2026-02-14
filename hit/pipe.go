@@ -28,15 +28,23 @@ func produce(
 	return out
 }
 
-func throttle(in <-chan *http.Request, delay time.Duration) <-chan *http.Request {
+func throttle(
+	ctx context.Context,
+	in <-chan *http.Request,
+	delay time.Duration,
+) <-chan *http.Request {
 	out := make(chan *http.Request)
 
 	go func() {
 		defer close(out)
 		t := time.NewTicker(delay)
 		for r := range in {
-			<-t.C
-			out <- r
+			select {
+			case <-ctx.Done():
+				return
+			case <-t.C:
+				out <- r
+			}
 		}
 	}()
 	return out
@@ -81,7 +89,7 @@ func dispatch(
 func runPipeline(ctx context.Context, n int, req *http.Request, opts Options) <-chan Result {
 	requests := produce(ctx, n, req)
 	if opts.RPS > 0 {
-		requests = throttle(requests, time.Second/time.Duration(opts.RPS))
+		requests = throttle(ctx, requests, time.Second/time.Duration(opts.RPS))
 	}
 	return dispatch(requests, opts.Concurrency, opts.ErrorThreshold, opts.Send)
 }
