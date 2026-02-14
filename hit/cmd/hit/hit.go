@@ -86,6 +86,7 @@ Summary:
 	Errors: 	%d
 	Bytes: 		%d
 	Duration: 	%s
+	Avg. Latency: %s
 	Fastest: 	%s
 	Slowest: 	%s
 `,
@@ -95,6 +96,7 @@ Summary:
 		sum.Errors,
 		sum.Bytes,
 		sum.Duration.Round(time.Millisecond),
+		(sum.Duration / time.Duration(sum.Requests)).Round(time.Millisecond),
 		sum.Fastest.Round(time.Millisecond),
 		sum.Slowest.Round(time.Millisecond),
 	)
