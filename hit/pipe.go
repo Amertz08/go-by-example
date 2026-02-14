@@ -36,17 +36,30 @@ func throttle(in <-chan *http.Request, delay time.Duration) <-chan *http.Request
 	return out
 }
 
-func dispatch(in <-chan *http.Request, concurrency int, send SendFunc) <-chan Result {
+func dispatch(
+	in <-chan *http.Request,
+	concurrency int,
+	errorThreshold int,
+	send SendFunc,
+) <-chan Result {
 	out := make(chan Result)
 
 	var wg sync.WaitGroup
 	wg.Add(concurrency)
 
+	errCount := 0
 	for range concurrency {
 		go func() {
 			defer wg.Done()
 			for req := range in {
-				out <- send(req)
+				if errorThreshold != 0 && errCount >= errorThreshold {
+					return
+				}
+				resp := send(req)
+				if resp.Error != nil {
+					errCount++
+				}
+				out <- resp
 			}
 		}()
 	}
@@ -64,5 +77,5 @@ func runPipeline(n int, req *http.Request, opts Options) <-chan Result {
 	if opts.RPS > 0 {
 		requests = throttle(requests, time.Second/time.Duration(opts.RPS))
 	}
-	return dispatch(requests, opts.Concurrency, opts.Send)
+	return dispatch(requests, opts.Concurrency, opts.ErrorThreshold, opts.Send)
 }

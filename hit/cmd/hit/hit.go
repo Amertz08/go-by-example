@@ -44,11 +44,12 @@ func run(e *env) error {
 	}
 	fmt.Fprintf(
 		e.stdout,
-		"%s\n\nSending %d requests to %q (concurrency: %d)\n",
+		"%s\n\nSending %d requests to %q (concurrency: %d) (error threshold: %d)\n",
 		logo,
 		c.n,
 		c.url,
 		c.c,
+		c.errorThreshold,
 	)
 	if e.dryRun {
 		return nil
@@ -67,7 +68,7 @@ func runHit(c *config, stdout io.Writer) error {
 		return fmt.Errorf("creating a new request: %w", err)
 	}
 	results, err := hit.SendN(
-		c.n, req, hit.Options{Concurrency: c.c, RPS: c.rps},
+		c.n, req, hit.Options{Concurrency: c.c, RPS: c.rps, ErrorThreshold: c.errorThreshold},
 	)
 	if err != nil {
 		return fmt.Errorf("sending requests: %w", err)

@@ -10,10 +10,11 @@ import (
 )
 
 type config struct {
-	url string
-	n   int
-	c   int
-	rps int
+	url            string
+	n              int
+	c              int
+	rps            int
+	errorThreshold int
 }
 
 func parseArgs(c *config, args []string, stderr io.Writer) error {
@@ -28,6 +29,7 @@ func parseArgs(c *config, args []string, stderr io.Writer) error {
 	fs.Var(asPositiveIntValue(&c.n), "n", "Number of requests")
 	fs.Var(asPositiveIntValue(&c.c), "c", "Concurrency level")
 	fs.Var(asPositiveIntValue(&c.rps), "rps", "Requests per second")
+	fs.Var(asPositiveIntValue(&c.errorThreshold), "et", "Error threshold")
 
 	if err := fs.Parse(args); err != nil {
 		return err

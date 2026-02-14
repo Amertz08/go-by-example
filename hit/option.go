@@ -3,7 +3,7 @@ package hit
 import "net/http"
 
 // SendFunc is a type of function that sends an
-// [http.Request] and retuns a [Result].
+// [http.Request] and returns a [Result].
 type SendFunc func(*http.Request) Result
 
 // Options defines the options for sending requests.
@@ -16,6 +16,10 @@ type Options struct {
 	// RPS is the requests to send per second.
 	// Default: 0 (no rate limiting)
 	RPS int
+
+	// ErrorThreshold is the number of errors to tolerate before exiting.
+	// Default: 0 (never exit)
+	ErrorThreshold int
 
 	// Send processes requests.
 	// Default Uses [Send].
