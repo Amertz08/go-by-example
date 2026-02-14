@@ -74,8 +74,21 @@ func runHit(c *config, stdout io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("creating a new request: %w", err)
 	}
-	results, err := hit.SendN(ctx,
-		c.n, req, hit.Options{Concurrency: c.c, RPS: c.rps, ErrorThreshold: c.errorThreshold},
+	results, err := hit.SendN(
+		ctx,
+		c.n,
+		req,
+		hit.Options{
+			Concurrency:    c.c,
+			RPS:            c.rps,
+			ErrorThreshold: c.errorThreshold,
+			Client: &http.Client{
+				Transport: &http.Transport{
+					MaxIdleConnsPerHost: c.c,
+					MaxIdleConns:        c.c,
+				},
+				Timeout: 5 * time.Second},
+		},
 	)
 	if err != nil {
 		return fmt.Errorf("sending requests: %w", err)
