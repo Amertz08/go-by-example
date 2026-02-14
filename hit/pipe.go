@@ -51,6 +51,7 @@ func throttle(
 }
 
 func dispatch(
+	ctx context.Context,
 	in <-chan *http.Request,
 	concurrency int,
 	errorThreshold int,
@@ -66,14 +67,19 @@ func dispatch(
 		go func() {
 			defer wg.Done()
 			for req := range in {
-				if errorThreshold != 0 && errCount >= errorThreshold {
+				select {
+				case <-ctx.Done():
 					return
+				default:
+					if errorThreshold != 0 && errCount >= errorThreshold {
+						return
+					}
+					resp := send(req)
+					if resp.Error != nil {
+						errCount++
+					}
+					out <- resp
 				}
-				resp := send(req)
-				if resp.Error != nil {
-					errCount++
-				}
-				out <- resp
 			}
 		}()
 	}
@@ -91,5 +97,5 @@ func runPipeline(ctx context.Context, n int, req *http.Request, opts Options) <-
 	if opts.RPS > 0 {
 		requests = throttle(ctx, requests, time.Second/time.Duration(opts.RPS))
 	}
-	return dispatch(requests, opts.Concurrency, opts.ErrorThreshold, opts.Send)
+	return dispatch(ctx, requests, opts.Concurrency, opts.ErrorThreshold, opts.Send)
 }
