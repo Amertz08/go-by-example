@@ -1,6 +1,8 @@
 package link
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/url"
@@ -50,4 +52,18 @@ func (k Key) Validate() error {
 		return fmt.Errorf("too long (max %d)", maxKeyLen)
 	}
 	return nil
+}
+
+// Shorten shortens the [Link] URL and generates a new [Key]
+// if the [Key] is empty. Otherwise, it returns the same [Key].
+// It returns an error if the [Link] is invalid.
+func Shorten(l Link) (Key, error) {
+	if l.Key.Empty() {
+		sum := sha256.Sum256([]byte(l.URL))
+		l.Key = Key(base64.RawURLEncoding.EncodeToString(sum[:6]))
+	}
+	if err := l.Validate(); err != nil {
+		return "", fmt.Errorf("validating: %w")
+	}
+	return l.Key, nil
 }
