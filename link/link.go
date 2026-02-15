@@ -24,11 +24,11 @@ func (k Key) String() string { return strings.TrimSpace(string(k)) }
 func (k Key) Empty() bool { return k.String() == "" }
 
 // Validate validates the [Link].
-func (lnk Link) Validate() error {
-	if err := lnk.Key.Validate(); err != nil {
+func (l Link) Validate() error {
+	if err := l.Key.Validate(); err != nil {
 		return fmt.Errorf("key: %w", err)
 	}
-	u, err := url.ParseRequestURI(lnk.URL)
+	u, err := url.ParseRequestURI(l.URL)
 	if err != nil {
 		return err
 	}
