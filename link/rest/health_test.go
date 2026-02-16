@@ -8,7 +8,7 @@ import (
 )
 
 func TestHealth(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	req := newRequest(t, http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()
 
 	Health(w, req)
