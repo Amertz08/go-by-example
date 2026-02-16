@@ -12,6 +12,7 @@ import (
 
 	"github.com/Amertz08/go-by-example/link"
 	"github.com/Amertz08/go-by-example/link/kit/hlog"
+	"github.com/Amertz08/go-by-example/link/kit/traceid"
 	"github.com/Amertz08/go-by-example/link/rest"
 )
 
@@ -54,13 +55,16 @@ func main() {
 func run(_ context.Context, cfg config) error {
 	shortener := new(link.Shortener)
 
+	lg := slog.New(traceid.NewLogHandler(cfg.lg.Handler()))
+
 	mux := http.NewServeMux()
-	mux.Handle("POST /shorten", rest.Shorten(cfg.lg, shortener))
-	mux.Handle("GET /{key}", rest.Resolve(cfg.lg, shortener))
+	mux.Handle("POST /shorten", rest.Shorten(lg, shortener))
+	mux.Handle("GET /{key}", rest.Resolve(lg, shortener))
 	mux.HandleFunc("GET /health", rest.Health)
 
+	loggingMiddleware := hlog.Middleware(lg)
 	srv := &http.Server{
-		Handler:     hlog.Middleware(cfg.lg)(mux),
+		Handler:     traceid.Middleware(loggingMiddleware(mux)),
 		Addr:        cfg.http.addr,
 		ReadTimeout: cfg.http.timeouts.read,
 		IdleTimeout: cfg.http.timeouts.idle,
