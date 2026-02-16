@@ -47,7 +47,7 @@ type Response struct {
 	Duration time.Duration
 }
 
-// RecordResponse wraps an HTTP handler and caputres its response details.
+// RecordResponse wraps an HTTP handler and captures its response details.
 func RecordResponse(
 	h http.Handler,
 	w http.ResponseWriter, r *http.Request,
@@ -60,4 +60,36 @@ func RecordResponse(
 	}
 	h.ServeHTTP(w, r)
 	return rr
+}
+
+// Interceptor provides hooks to intercept response writes.
+type Interceptor struct {
+	http.ResponseWriter
+	OnWriteHeader func(code int)
+}
+
+// WriteHeader calls [Inteceptor.OnWriteHeader] if provided and
+// then calls the embedded [http.ResponseWriter.WriteHeader].
+func (ic *Interceptor) WriteHeader(code int) {
+	if ic.OnWriteHeader != nil {
+		ic.OnWriteHeader(code)
+	}
+	ic.ResponseWriter.WriteHeader(code)
+}
+
+// StatusCode records the HTTP status code into the provided variable.
+// Not safe for concurrent use. Use it only to process a single request.
+func StatusCode(n *int) MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			*n = http.StatusOK
+			w = &Interceptor{
+				ResponseWriter: w,
+				OnWriteHeader: func(code int) {
+					*n = code
+				},
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }
