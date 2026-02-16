@@ -82,6 +82,13 @@ func (ic *Interceptor) WriteHeader(code int) {
 	ic.ResponseWriter.WriteHeader(code)
 }
 
+// Unwrap returns the embedded [http.ResponseWriter] to allow
+// handlers to access the original when needed to preserve
+// [http] optional interfaces like [http.Flusher], etc.
+func (ic *Interceptor) Unwrap() http.ResponseWriter {
+	return ic.ResponseWriter
+}
+
 // StatusCode records the HTTP status code into the provided variable.
 // Not safe for concurrent use. Use it only to process a single request.
 func StatusCode(n *int) MiddlewareFunc {
