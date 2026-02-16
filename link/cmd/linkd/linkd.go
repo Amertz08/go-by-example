@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Amertz08/go-by-example/link"
+	"github.com/Amertz08/go-by-example/link/kit/hlog"
 	"github.com/Amertz08/go-by-example/link/rest"
 )
 
@@ -59,7 +60,7 @@ func run(_ context.Context, cfg config) error {
 	mux.HandleFunc("GET /health", rest.Health)
 
 	srv := &http.Server{
-		Handler:     mux,
+		Handler:     hlog.Middleware(cfg.lg)(mux),
 		Addr:        cfg.http.addr,
 		ReadTimeout: cfg.http.timeouts.read,
 		IdleTimeout: cfg.http.timeouts.idle,
