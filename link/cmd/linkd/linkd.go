@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Amertz08/go-by-example/link"
 	"github.com/Amertz08/go-by-example/link/rest"
 )
 
@@ -36,7 +37,14 @@ func main() {
 }
 
 func run(_ context.Context, cfg config) error {
-	err := http.ListenAndServe(cfg.http.addr, http.HandlerFunc(rest.Health))
+	shortener := new(link.Shortener)
+
+	mux := http.NewServeMux()
+	mux.Handle("POST /shorten", rest.Shorten(cfg.lg, shortener))
+	mux.Handle("GET /{key}", rest.Resolve(cfg.lg, shortener))
+	mux.HandleFunc("GET /health", rest.Health)
+
+	err := http.ListenAndServe(cfg.http.addr, mux)
 
 	if !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("server closed unexpectedly: %w", err)
