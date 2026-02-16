@@ -22,6 +22,7 @@ func Middleware(lg *slog.Logger) MiddlewareFunc {
 					slog.Any("path", r.URL),
 					slog.String("method", r.Method),
 					slog.Duration("duration", rr.Duration),
+					slog.Int("status", rr.StatusCode),
 				)
 			},
 		)
@@ -44,7 +45,8 @@ func Duration(d *time.Duration) MiddlewareFunc {
 
 // Response holds response related details such as duration.
 type Response struct {
-	Duration time.Duration
+	Duration   time.Duration
+	StatusCode int
 }
 
 // RecordResponse wraps an HTTP handler and captures its response details.
@@ -53,7 +55,10 @@ func RecordResponse(
 	w http.ResponseWriter, r *http.Request,
 ) Response {
 	var rr Response
-	mws := []MiddlewareFunc{Duration(&rr.Duration)}
+	mws := []MiddlewareFunc{
+		Duration(&rr.Duration),
+		StatusCode(&rr.StatusCode),
+	}
 
 	for _, wrap := range slices.Backward(mws) {
 		h = wrap(h)
