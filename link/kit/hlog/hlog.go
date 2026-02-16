@@ -3,6 +3,7 @@ package hlog
 import (
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 )
 
@@ -14,12 +15,13 @@ func Middleware(lg *slog.Logger) MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
-				next.ServeHTTP(w, r)
+				rr := RecordResponse(next, w, r)
 				lg.LogAttrs(
 					r.Context(),
 					slog.LevelInfo, "request",
 					slog.Any("path", r.URL),
 					slog.String("method", r.Method),
+					slog.Duration("duration", rr.Duration),
 				)
 			},
 		)
@@ -38,4 +40,24 @@ func Duration(d *time.Duration) MiddlewareFunc {
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+// Response holds response related details such as duration.
+type Response struct {
+	Duration time.Duration
+}
+
+// RecordResponse wraps an HTTP handler and caputres its response details.
+func RecordResponse(
+	h http.Handler,
+	w http.ResponseWriter, r *http.Request,
+) Response {
+	var rr Response
+	mws := []MiddlewareFunc{Duration(&rr.Duration)}
+
+	for _, wrap := range slices.Backward(mws) {
+		h = wrap(h)
+	}
+	h.ServeHTTP(w, r)
+	return rr
 }
