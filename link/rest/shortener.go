@@ -26,7 +26,7 @@ func Shorten(lg *slog.Logger, links *link.Shortener) http.Handler {
 	})
 }
 
-// Resolve returns an [http.Handler] that resolves shortene link URLs.
+// Resolve returns an [http.Handler] that resolves shorten link URLs.
 // It extracts a {kye} from [http.Request] using [http.Request.PathValue].
 func Resolve(lg *slog.Logger, links *link.Shortener) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
