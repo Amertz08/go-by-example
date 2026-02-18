@@ -28,7 +28,12 @@ func (s *Shortener) Shorten(
 	}
 
 	// Persist the link in the database.
-	_, err = s.db.ExecContext(ctx, "INSERT INTO links (key, url) VALUES (?, ?)", lnk.Key, lnk.URL)
+	_, err = s.db.ExecContext(
+		ctx,
+		"INSERT INTO links (short_key, uri) VALUES (?, ?)",
+		lnk.Key,
+		lnk.URL,
+	)
 	if err != nil {
 		return "", fmt.Errorf("persisting: %w: %w", err, link.ErrInternal)
 	}

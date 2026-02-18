@@ -29,6 +29,6 @@ func TestShortenerShorten(t *testing.T) {
 	// Disallows shortening a link with a duplicate key.
 	_, err = shortener.Shorten(t.Context(), lnk)
 	if !errors.Is(err, link.ErrConflict) {
-		t.Fatalf("expected error %w, got %v", link.ErrConflict, err)
+		t.Fatalf("expected error %v, got %v", link.ErrConflict, err)
 	}
 }
