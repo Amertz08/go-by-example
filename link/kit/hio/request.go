@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 )
 
 // DecodeJSON reads and decodes JSON.
@@ -23,4 +24,20 @@ func DecodeJSON(from io.Reader, to any) error {
 		}
 	}
 	return nil
+}
+
+// MaxBytesReader is like [http.MaxBytesReader].
+func MaxBytesReader(w http.ResponseWriter, rc io.ReadCloser, max int64) io.ReadCloser {
+	type unwrapper interface {
+		Unwrap() http.ResponseWriter
+	}
+	for {
+		v, ok := w.(unwrapper)
+		if !ok {
+			break
+		}
+		w = v.Unwrap()
+	}
+
+	return http.MaxBytesReader(w, rc, max)
 }
