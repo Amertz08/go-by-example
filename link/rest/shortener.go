@@ -2,41 +2,54 @@ package rest
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/Amertz08/go-by-example/link"
+	"github.com/Amertz08/go-by-example/link/kit/hio"
 )
+
+// newResponder returns a new HTTP responder with an error handler.
+// that maps the errors to the appropriate HTTP status codes.
+func newResponder(lg *slog.Logger) hio.Responder {
+	err := func(err error) hio.Handler {
+		return func(w http.ResponseWriter, r *http.Request) hio.Handler {
+			httpError(w, r, lg, err)
+			return nil
+		}
+	}
+	return hio.NewResponder(err)
+}
 
 // Shorten returns an [http.Handler] that shortens URLs.
 func Shorten(lg *slog.Logger, links *link.Shortener) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	with := newResponder(lg)
+
+	return hio.Handler(func(w http.ResponseWriter, r *http.Request) hio.Handler {
 		key, err := links.Shorten(r.Context(), link.Link{
 			Key: link.Key(r.PostFormValue("Key")),
 			URL: r.PostFormValue("url"),
 		})
 		if err != nil {
-			httpError(w, r, lg, fmt.Errorf("shortening: %w", err))
-			return
+			return with.Error("shortening: %w", err)
 		}
 
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprint(w, key)
+		return with.Text(http.StatusCreated, key.String())
 	})
 }
 
 // Resolve returns an [http.Handler] that resolves shorten link URLs.
 // It extracts a {kye} from [http.Request] using [http.Request.PathValue].
 func Resolve(lg *slog.Logger, links *link.Shortener) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	with := newResponder(lg)
+
+	return hio.Handler(func(w http.ResponseWriter, r *http.Request) hio.Handler {
 		lnk, err := links.Resolve(r.Context(), link.Key(r.PathValue("key")))
 		if err != nil {
-			httpError(w, r, lg, fmt.Errorf("resolving: %w", err))
-			return
+			return with.Error("resolving: %w", err)
 		}
 
-		http.Redirect(w, r, lnk.URL, http.StatusFound)
+		return with.Redirect(http.StatusFound, lnk.URL)
 	})
 }
 
