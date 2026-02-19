@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -8,6 +9,12 @@ import (
 	"github.com/Amertz08/go-by-example/link"
 	"github.com/Amertz08/go-by-example/link/kit/hio"
 )
+
+// Shortener is a link shortener service that shortens URLs.
+type Shortener interface {
+	// Shorten shortens a link and returns its key.
+	Shorten(ctx context.Context, lnk link.Link) (link.Key, error)
+}
 
 // newResponder returns a new HTTP responder with an error handler.
 // that maps the errors to the appropriate HTTP status codes.
@@ -22,7 +29,7 @@ func newResponder(lg *slog.Logger) hio.Responder {
 }
 
 // Shorten returns an [http.Handler] that shortens URLs.
-func Shorten(lg *slog.Logger, links *link.Shortener) http.Handler {
+func Shorten(lg *slog.Logger, links Shortener) http.Handler {
 	with := newResponder(lg)
 
 	return hio.Handler(func(w http.ResponseWriter, r *http.Request) hio.Handler {
@@ -47,9 +54,15 @@ func Shorten(lg *slog.Logger, links *link.Shortener) http.Handler {
 	})
 }
 
+// Resolver is a link resolver service that resolves shorten link URLs.
+type Resolver interface {
+	// Resolve resolves a shorten link URL by its key.
+	Resolve(ctx context.Context, key link.Key) (link.Link, error)
+}
+
 // Resolve returns an [http.Handler] that resolves shorten link URLs.
 // It extracts a {kye} from [http.Request] using [http.Request.PathValue].
-func Resolve(lg *slog.Logger, links *link.Shortener) http.Handler {
+func Resolve(lg *slog.Logger, links Resolver) http.Handler {
 	with := newResponder(lg)
 
 	return hio.Handler(func(w http.ResponseWriter, r *http.Request) hio.Handler {
