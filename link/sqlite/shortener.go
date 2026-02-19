@@ -34,6 +34,9 @@ func (s *Shortener) Shorten(
 		lnk.Key,
 		lnk.URL,
 	)
+	if isPrimaryKeyViolation(err) {
+		return "", fmt.Errorf("saving %w", link.ErrConflict)
+	}
 	if err != nil {
 		return "", fmt.Errorf("persisting: %w: %w", err, link.ErrInternal)
 	}
