@@ -10,10 +10,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/Amertz08/go-by-example/link"
 	"github.com/Amertz08/go-by-example/link/kit/hlog"
 	"github.com/Amertz08/go-by-example/link/kit/traceid"
 	"github.com/Amertz08/go-by-example/link/rest"
+	"github.com/Amertz08/go-by-example/link/sqlite"
 )
 
 type config struct {
@@ -22,6 +22,9 @@ type config struct {
 		timeouts struct{ read, idle time.Duration }
 	}
 	lg *slog.Logger
+	db struct {
+		dsn string
+	}
 }
 
 func main() {
@@ -39,6 +42,7 @@ func main() {
 		40*time.Second,
 		"http idle timeout",
 	)
+	flag.StringVar(&cfg.db.dsn, "db.dsn", "file:links.db?mode=rwc", "database DSN")
 	flag.Parse()
 
 	cfg.lg = slog.New(
@@ -52,8 +56,12 @@ func main() {
 	}
 }
 
-func run(_ context.Context, cfg config) error {
-	shortener := new(link.Shortener)
+func run(ctx context.Context, cfg config) error {
+	db, err := sqlite.Dial(ctx, cfg.db.dsn)
+	if err != nil {
+		return fmt.Errorf("dialing database: %w", err)
+	}
+	shortener := sqlite.NewShortener(db)
 
 	lg := slog.New(traceid.NewLogHandler(cfg.lg.Handler()))
 
